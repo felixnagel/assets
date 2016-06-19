@@ -13,7 +13,7 @@
         "luckynail/helper": "*",
         "luckynail/simple": "*",
         "luckynail/simple-cache": "*",
-        "matthiasmullie/minify",
+        "matthiasmullie/minify": "*"
     },
     "require-dev": {},
     "autoload": {
