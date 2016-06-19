@@ -1,0 +1,24 @@
+{
+    "name": "luckynail/assets",
+    "description": "",
+    "license": "MIT",
+    "keywords": ["assets", "minify", "compress", "optimize", "js", "css", "compressor", "minifier"],
+    "authors": [
+        {
+            "name": "Felix Nagel",
+            "email": "ElfixLange@gmail.com"
+        }
+    ],
+    "require": {
+        "luckynail/helper": "*",
+        "luckynail/simple": "*",
+        "luckynail/simple-cache": "*",
+        "matthiasmullie/minify",
+    },
+    "require-dev": {},
+    "autoload": {
+        "psr-4": {
+            "LuckyNail\\Assets\\": "src"
+        }
+    }
+}
