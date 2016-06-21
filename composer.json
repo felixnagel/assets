@@ -12,6 +12,7 @@
     "require": {
         "luckynail/helper": "*",
         "luckynail/simple-cache": "*",
+        "luckynail/simple": "*",
         "matthiasmullie/minify": "*"
     },
     "require-dev": {},
