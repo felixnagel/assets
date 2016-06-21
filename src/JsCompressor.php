@@ -1,12 +1,11 @@
 <?php 
 
 namespace LuckyNail\Assets;
-use LuckyNail\Helper;
 use MatthiasMullie\Minify;
 
-class JsCompressor extends Compressor{
-	public function __construct($sCachePath){
-		$this->_sCachePath = $sCachePath;
+class JsCompressor extends AssetCompressor{
+	public function __construct($sPublicBasePath, $sCachePath){
+		parent::__construct('js', $sPublicBasePath, $sCachePath);
 		$this->_oCompressor = new Minify\JS();
 	}
 }

@@ -1,17 +1,16 @@
 <?php 
 
 namespace LuckyNail\Assets;
+
+use LuckyNail\Simple;
 use LuckyNail\Helper;
 
-class AssetBox{
+class AssetBox extends Simple\BlackBox{
 	protected $_aHierarchicalAssets = [];
-	protected $_sType;
-	protected static $_aGlobalAssets = [];
 	protected static $_sPublicBasePath;
 
 	public function __construct($sType, $sPublicBasePath){
-		$this->_sType = $sType;
-		self::$_aGlobalAssets[$sType] = [];
+		parent::__construct($sType);
 		self::$_sPublicBasePath = Helper\Path::to_abs_path($sPublicBasePath);
 	}
 
@@ -42,10 +41,10 @@ class AssetBox{
 	}
 
 	public static function add_asset($sType, $sInput){
-		self::$_aGlobalAssets[$sType][] = self::_normalize_asset_path($sInput);
+		self::put($sType, self::_normalize_asset_path($sInput));
 	}
 
 	public function get_assets(){
-		return array_merge(self::$_aGlobalAssets[$this->_sType], $this->_aHierarchicalAssets);
+		return array_merge($this->look(), $this->_aHierarchicalAssets);
 	}
 }

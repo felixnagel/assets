@@ -3,9 +3,9 @@
 namespace LuckyNail\Assets;
 use MatthiasMullie\Minify;
 
-class CssCompressor extends Compressor{
-	public function __construct($sCachePath){
-		$this->_sCachePath = Helper\Path::to_abs_path($sCachePath);
+class CssCompressor extends AssetCompressor{
+	public function __construct($sPublicBasePath, $sCachePath){
+		parent::__construct('css', $sPublicBasePath, $sCachePath);
 		$this->_oCompressor = new Minify\CSS();
 	}
 }
