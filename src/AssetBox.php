@@ -7,28 +7,30 @@ use LuckyNail\Helper;
 
 class AssetBox extends Simple\BlackBox{
 	protected $_aHierarchicalAssets = [];
-	protected static $_sPublicBasePath;
+	protected $_sPublicBasePath;
+	protected $_assetUrls = [];
+	protected $_assets = [];
 
 	public function __construct($sType, $sPublicBasePath){
 		parent::__construct($sType);
-		self::$_sPublicBasePath = Helper\Path::to_abs_path($sPublicBasePath);
+		$this->_sPublicBasePath = Helper\Path::to_abs_path($sPublicBasePath);
 	}
 
 	public function add_hierarchical_assets($aFileHierarchy){
 		$oCollector = new HierarchicCollector();
 		$aNewHierarchicalAssetPaths = $oCollector->collect(
 			$aFileHierarchy,
-			self::$_sPublicBasePath
+			$this->_sPublicBasePath
 		);
 
 		foreach($aNewHierarchicalAssetPaths as $sPath){
-			$this->_aHierarchicalAssets[] = self::_normalize_asset_path($sPath);
+			$this->_aHierarchicalAssets[] = $this->_normalize_asset_path($sPath);
 		}
 	}
 
-	private static function _normalize_asset_path($sInput){
-		$sUrl = Helper\Path::to_url_part(str_replace(self::$_sPublicBasePath, '', $sInput));
-		$sPath = self::$_sPublicBasePath.DIRECTORY_SEPARATOR.$sUrl;
+	protected function _normalize_asset_path($sInput){
+		$sUrl = Helper\Path::to_url_part(str_replace($this->_sPublicBasePath, '', $sInput));
+		$sPath = $this->_sPublicBasePath.DIRECTORY_SEPARATOR.$sUrl;
 		$sPathAbs = Helper\Path::to_abs_path($sPath);
 		
 		if($sPathAbs === false){
@@ -40,11 +42,44 @@ class AssetBox extends Simple\BlackBox{
 		return $sUrl;
 	}
 
-	public static function add_asset($sType, $sInput){
-		self::put($sType, self::_normalize_asset_path($sInput));
+	public static function add_asset($sType, $aInput){
+		if(!is_array($aInput)){
+			$aInput = [$aInput];
+		}
+		foreach($aInput as $sInput){
+			self::put($sType, $sInput);
+		}
 	}
 
+	public function fetch_assets(){
+		$this->_assets = [];
+		foreach($this->get_asset_urls() as $sUrl){
+			$this->_assets[$sUrl] = file_get_contents(
+				$this->_sPublicBasePath.DIRECTORY_SEPARATOR.$sUrl
+			);
+		}
+		return $this->_assets;
+	}
+
+	public function get_asset_urls(){
+		if(!$this->_assetUrls){
+			$this->fetch_asset_urls();
+		}
+		return $this->_assetUrls;
+	}
 	public function get_assets(){
-		return array_merge($this->look(), $this->_aHierarchicalAssets);
+		if(!$this->_assets){
+			$this->fetch_assets();
+		}
+		return $this->_assets;
+	}
+
+	public function fetch_asset_urls(){
+		$aGlobalAssets = [];
+		foreach($this->look() as $sUrl){
+			$aGlobalAssets[] = $this->_normalize_asset_path($sUrl);
+		}
+		$this->_assetUrls = array_merge($aGlobalAssets, $this->_aHierarchicalAssets);
+		return $this->_assetUrls;
 	}
 }
