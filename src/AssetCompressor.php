@@ -1,44 +1,69 @@
 <?php 
 
 namespace LuckyNail\Assets;
+use LuckyNail\Helper;
+use MatthiasMullie\Minify;
 
-abstract class AssetCompressor extends AssetBox{
+class AssetCompressor{
 	protected $_oCompressor;
+	protected $_aAssets = [];
+	protected $_aIds = [];
+	protected $_bMerge = true;
+	protected $_bMinify = true;
+	protected $_sAssetType;
 
-	public function __construct($sType, $sPublicBasePath){
-		parent::__construct($sType, $sPublicBasePath);
+	public function __construct($sAssetType){
+		$this->_sAssetType = $sAssetType;
 	}
 
-	public function get_compressed_assets_id($bMerged = true, $bMinified = true){
-		$aUrls = $this->get_asset_urls();
+	protected function _reset_compressor(){
+		if(strtolower($this->_sAssetType) === 'js'){
+			$this->_oCompressor = new Minify\JS();
+		}
+		elseif(strtolower($this->_sAssetType) === 'css'){
+			$this->_oCompressor = new Minify\CSS();
+		}
+	}	
+
+	public function add($sAssetContent, $sAssetId = false){
+		$this->_aAssets[] = $sAssetContent;
+		if(!$sAssetId){
+			$sAssetId = md5(uniqid(rand(), true));
+		}
+		$this->_aIds[] = $sAssetId;
+	}
+
+	public function get_package_id($bMerged = true, $bMinified = true){
+		$aIds = $this->_aIds;
 		
 		if($bMerged){
-			$aUrls = [implode('', $aUrls)];
+			$aIds = [implode('', $aIds)];
 		}
 		if($bMinified){
-			foreach($aUrls as $i => $sUrl){
-				$aUrl[$i] .= '.min';
+			foreach($aIds as $iKey => $sId){
+				$aIds[$iKey] .= '.min';
 			}
 		}
-		foreach($aUrls as $i => $sUrl){
-			$aUrl[$i] = md5($sUrl);
+		foreach($aIds as $iKey => $sId){
+			$aIds[$iKey] = md5($sId);
 		}
 
-		return $bMerged ? $aUrls[0] : $aUrls;
+		return $bMerged ? $aIds[0] : $aIds;
 	}
 
 
-	public function get_compressed_assets($bMerged = true, $bMinified = true){
-		$aAssets = $this->get_assets();
+	public function get_package($bMerged = true, $bMinified = true){
+		$aAssets = $this->_aAssets;
 
 		if($bMerged){
 			$aAssets = [implode("\r\n", $aAssets)];
 		}
+
 		if($bMinified){
-			foreach($aAssets as $i => $sAsset){
-				$this->_create_compressor();
+			foreach($aAssets as $iKey => $sAsset){
+				$this->_reset_compressor();
 				$this->_oCompressor->add($sAsset);
-				$aAssets[$i] = $this->_oCompressor->minify();
+				$aAssets[$iKey] = $this->_oCompressor->minify();
 			}
 		}
 
