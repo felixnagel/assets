@@ -4,38 +4,23 @@ namespace LuckyNail\Assets;
 use LuckyNail\Helper;
 use MatthiasMullie\Minify;
 
-class AssetCompressor{
+class AssetCompressor extends AssetBox{
 	protected $_oCompressor;
-	protected $_aAssets = [];
-	protected $_aIds = [];
 	protected $_bMerge = true;
 	protected $_bMinify = true;
-	protected $_sAssetType;
-
-	public function __construct($sAssetType){
-		$this->_sAssetType = $sAssetType;
+	public function __construct($sAssetType, $sBasePath = '/'){
+		parent::__construct($sAssetType, $sBasePath);
 	}
-
 	protected function _reset_compressor(){
-		if(strtolower($this->_sAssetType) === 'js'){
+		if(strtolower($this->get_asset_type()) === 'js'){
 			$this->_oCompressor = new Minify\JS();
 		}
-		elseif(strtolower($this->_sAssetType) === 'css'){
+		elseif(strtolower($this->get_asset_type()) === 'css'){
 			$this->_oCompressor = new Minify\CSS();
 		}
 	}	
-
-	public function add($sAssetContent, $sAssetId = false){
-		$this->_aAssets[] = $sAssetContent;
-		if(!$sAssetId){
-			$sAssetId = md5(uniqid(rand(), true));
-		}
-		$this->_aIds[] = $sAssetId;
-	}
-
 	public function get_package_id($bMerged = true, $bMinified = true){
-		$aIds = $this->_aIds;
-		
+		$aIds = $this->get_asset_urls();
 		if($bMerged){
 			$aIds = [implode('', $aIds)];
 		}
@@ -47,18 +32,13 @@ class AssetCompressor{
 		foreach($aIds as $iKey => $sId){
 			$aIds[$iKey] = md5($sId);
 		}
-
 		return $bMerged ? $aIds[0] : $aIds;
 	}
-
-
 	public function get_package($bMerged = true, $bMinified = true){
-		$aAssets = $this->_aAssets;
-
+		$aAssets = $this->get_assets();
 		if($bMerged){
 			$aAssets = [implode("\r\n", $aAssets)];
 		}
-
 		if($bMinified){
 			foreach($aAssets as $iKey => $sAsset){
 				$this->_reset_compressor();
@@ -66,7 +46,6 @@ class AssetCompressor{
 				$aAssets[$iKey] = $this->_oCompressor->minify();
 			}
 		}
-
 		return $bMerged ? $aAssets[0] : $aAssets;
 	}
 }

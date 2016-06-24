@@ -5,81 +5,84 @@ namespace LuckyNail\Assets;
 use LuckyNail\Simple;
 use LuckyNail\Helper;
 
-class AssetBox extends Simple\BlackBox{
-	protected $_aHierarchicalAssets = [];
-	protected $_sPublicBasePath;
-	protected $_assetUrls = [];
-	protected $_assets = [];
-
-	public function __construct($sType, $sPublicBasePath){
-		parent::__construct($sType);
-		$this->_sPublicBasePath = Helper\Path::to_abs_path($sPublicBasePath);
+class AssetBox extends Simple\BlackBox implements ITextAsset{
+	protected $_sBasePath = '';
+	protected $_aAssetUrls = [];
+	protected $_aAssetPaths = [];
+	protected $_aAssets = [];
+	public function __construct($sAssetType, $sBasePath = '/'){
+		parent::__construct($sAssetType);
+		$this->set_base_path($sBasePath);
 	}
-
-	public function add_hierarchical_assets($aFileHierarchy){
-		$oCollector = new HierarchicCollector();
-		$aNewHierarchicalAssetPaths = $oCollector->collect(
-			$aFileHierarchy,
-			$this->_sPublicBasePath
-		);
-
-		foreach($aNewHierarchicalAssetPaths as $sPath){
-			$this->_aHierarchicalAssets[] = $this->_normalize_asset_path($sPath);
+	public function set_base_path($sBasePath){
+		$this->_sBasePath = Helper\Path::to_abs_path($sBasePath);
+	}
+	public function add_assets($aAssets){
+		if(!is_array($aAssets)){
+			$aAssets = [$aAssets];
+		}
+		foreach($aAssets as $sAssetRelPath){
+			$this->insert($sAssetRelPath);
 		}
 	}
-
-	protected function _normalize_asset_path($sInput){
-		$sUrl = Helper\Path::to_url_part(str_replace($this->_sPublicBasePath, '', $sInput));
-		$sPath = $this->_sPublicBasePath.DIRECTORY_SEPARATOR.$sUrl;
-		$sPathAbs = Helper\Path::to_abs_path($sPath);
-		
-		if($sPathAbs === false){
+	public function get_asset_type(){
+		return $this->_sKey;
+	}
+	protected function _to_asset_path($sInput){
+		if(strpos($sInput, $this->_sBasePath) === false){
+			$sInput = $this->_sBasePath.DIRECTORY_SEPARATOR.Helper\Path::to_path_part($sInput);
+		}
+		$sFullPath = realpath($sInput);
+		if($sFullPath === false){
 			throw new \Exception(
 				__CLASS__.' - File cannot be read or does not exist: "'.$sPath.'"'
 			);
 		}
-
-		return $sUrl;
+		return $sFullPath;
 	}
-
-	public static function add_asset($sType, $aInput){
-		if(!is_array($aInput)){
-			$aInput = [$aInput];
+	protected function _to_asset_url($sInput){
+		$sPathPart = Helper\Path::to_path_part($sInput);
+		if(strpos($sPathPart, $this->_sBasePath) === 0){
+			$sPathPart = str_replace($this->_sBasePath, '', $sPathPart);
 		}
-		foreach($aInput as $sInput){
-			self::put($sType, $sInput);
-		}
+		return Helper\Path::to_url_part($sPathPart);
 	}
-
-	public function fetch_assets(){
-		$this->_assets = [];
-		foreach($this->get_asset_urls() as $sUrl){
-			$this->_assets[$sUrl] = file_get_contents(
-				$this->_sPublicBasePath.DIRECTORY_SEPARATOR.$sUrl
-			);
+	protected function fetch_asset_urls(){
+		$this->_aAssetUrls = [];
+		foreach($this->get() as $sInput){
+			$this->_aAssetUrls[] = $this->_to_asset_url($sInput);
 		}
-		return $this->_assets;
+		$this->_aAssetUrls = array_unique($this->_aAssetUrls);
 	}
-
 	public function get_asset_urls(){
-		if(!$this->_assetUrls){
+		if(count($this->get()) !== count($this->_aAssetUrls)){
 			$this->fetch_asset_urls();
 		}
-		return $this->_assetUrls;
+		return $this->_aAssetUrls;
 	}
+	protected function fetch_asset_paths(){
+		$this->_aAssetPaths = [];
+		foreach($this->get() as $sInput){
+			$this->_aAssetPaths[] = $this->_to_asset_path($sInput);
+		}
+		$this->_aAssetPaths = array_unique($this->_aAssetPaths);
+	}
+	public function get_asset_paths(){
+		if(count($this->get()) !== count($this->_aAssetPaths)){
+			$this->fetch_asset_paths();
+		}
+		return $this->_aAssetPaths;
+	}
+	protected function fetch_assets(){
+		$this->_aAssets = [];
+		foreach($this->get_asset_paths() as $sPath){
+			$this->_aAssets[$sPath] = file_get_contents($sPath);
+		}
+	}	
 	public function get_assets(){
-		if(!$this->_assets){
+		if(count($this->get()) !== count($this->_aAssets)){
 			$this->fetch_assets();
 		}
-		return $this->_assets;
-	}
-
-	public function fetch_asset_urls(){
-		$aGlobalAssets = [];
-		foreach($this->look() as $sUrl){
-			$aGlobalAssets[] = $this->_normalize_asset_path($sUrl);
-		}
-		$this->_assetUrls = array_merge($aGlobalAssets, $this->_aHierarchicalAssets);
-		return $this->_assetUrls;
+		return $this->_aAssets;
 	}
 }
