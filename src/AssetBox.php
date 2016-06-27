@@ -76,7 +76,14 @@ class AssetBox extends Simple\BlackBox implements ITextAsset{
 	protected function fetch_assets(){
 		$this->_aAssets = [];
 		foreach($this->get_asset_paths() as $sPath){
-			$this->_aAssets[$sPath] = file_get_contents($sPath);
+			$sAsset = file_get_contents($sPath);
+
+			if($this->_sKey === 'css'){
+				$sPrepend = str_replace($this->_sBasePath, '', $sPath);
+				$sPrepend = dirname($sPrepend).DIRECTORY_SEPARATOR;
+				$sAsset = preg_replace("=(url\(['\"])\/*(.+?)(['\"]\))=i", '$1'.$sPrepend.'$2$3', $sAsset);
+			}
+			$this->_aAssets[$sPath] = $sAsset;
 		}
 	}	
 	public function get_assets(){

@@ -39,6 +39,7 @@ class AssetCompressor extends AssetBox{
 		if($bMerged){
 			$aAssets = [implode("\r\n", $aAssets)];
 		}
+
 		if($bMinified){
 			foreach($aAssets as $iKey => $sAsset){
 				$this->_reset_compressor();
