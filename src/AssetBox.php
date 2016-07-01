@@ -35,7 +35,12 @@ class AssetBox extends Simple\BlackBox implements ITextAsset{
 		$sFullPath = realpath($sInput);
 		if($sFullPath === false){
 			throw new \Exception(
-				__CLASS__.' - File cannot be read or does not exist: "'.$sPath.'"'
+				__CLASS__.' - File cannot be read or does not exist: "'.$sInput.'"'
+			);
+		}
+		if(strpos($sFullPath, $this->_sBasePath) !== 0){
+			throw new \Exception(
+				__CLASS__.' - File path seems not to be in public path: "'.$sInput.'"'
 			);
 		}
 		return $sFullPath;

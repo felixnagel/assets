@@ -2,12 +2,12 @@
 
 namespace LuckyNail\Assets;
 use LuckyNail\Helper;
+use LuckyNail\SimpleCache;
 use MatthiasMullie\Minify;
 
 class AssetCompressor extends AssetBox{
 	protected $_oCompressor;
-	protected $_bMerge = true;
-	protected $_bMinify = true;
+	protected $_oCache;
 	public function __construct($sAssetType, $sBasePath = '/'){
 		parent::__construct($sAssetType, $sBasePath);
 	}
@@ -19,34 +19,40 @@ class AssetCompressor extends AssetBox{
 			$this->_oCompressor = new Minify\CSS();
 		}
 	}	
-	public function get_package_id($bMerged = true, $bMinified = true){
-		$aIds = $this->get_asset_urls();
-		if($bMerged){
-			$aIds = [implode('', $aIds)];
-		}
+	public function get_package_id($bMinified = true){
+		$sIds = implode('', $this->get_asset_urls());
 		if($bMinified){
-			foreach($aIds as $iKey => $sId){
-				$aIds[$iKey] .= '.min';
-			}
+			$sIds .= '.min';
 		}
-		foreach($aIds as $iKey => $sId){
-			$aIds[$iKey] = md5($sId);
-		}
-		return $bMerged ? $aIds[0] : $aIds;
+		return md5($sIds);
 	}
-	public function get_package($bMerged = true, $bMinified = true){
-		$aAssets = $this->get_assets();
-		if($bMerged){
-			$aAssets = [implode("\r\n", $aAssets)];
-		}
-
+	protected function _fetch_package($bMinified){
+		$sAssets = implode("\r\n", $this->get_assets());
 		if($bMinified){
-			foreach($aAssets as $iKey => $sAsset){
-				$this->_reset_compressor();
-				$this->_oCompressor->add($sAsset);
-				$aAssets[$iKey] = $this->_oCompressor->minify();
-			}
+			$this->_reset_compressor();
+			$this->_oCompressor->add($sAssets);
+			$sAssets = $this->_oCompressor->minify();
 		}
-		return $bMerged ? $aAssets[0] : $aAssets;
+		return $sAssets;
+	}
+	public function get_package($bMinified = true){
+		if(!$this->_oCache){
+			$sContent = $this->_fetch_package($bMinified);
+		}else{
+			$sPackageId = $this->get_package_id($bMinified);
+            $sContent = $this->_oCache->read($sPackageId);
+            if($sContent === false){
+                $sContent = $this->_fetch_package($bMinified);
+                $this->_oCache->write($sPackageId, $sContent);
+            }
+		}
+		return $sContent;
+	}
+
+	public function add_cache($iCacheHours = 24, $sCachePath = false){
+		if(!$sCachePath){
+			$sCachePath = $this->_sBasePath.DIRECTORY_SEPARATOR.'__ac_cache_'.$this->_sKey;
+		}
+		$this->_oCache = new SimpleCache\Text($sCachePath, $iCacheHours);
 	}
 }
