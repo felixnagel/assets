@@ -55,4 +55,43 @@ class AssetCompressor extends AssetBox{
 		}
 		$this->_oCache = new SimpleCache\Text($sCachePath, $iCacheHours);
 	}
+	public function create_tags($sControllerUrl, $bMerge = true){
+		$aUrls = $this->get_asset_urls();
+
+		// Erstellt Tag-Prototypen für sprintf()
+        $aReplacementProtos = [
+            'js' => '<script src="%s" type="text/javascript"></script>'."\r\n",
+            'css' => '<link href="%s" type="text/css" rel="stylesheet" />'."\r\n",
+        ];
+
+		$sResult = '';
+        // Falls die Assets zusammengefügt werden sollen, werden als Urls-Parameter gleich alle
+        // Urls als Array gesetzt und der Url-Pool wird sofort geleert.
+        while($aUrls){
+			if($bMerge){
+	            $aQueryUrls = $aUrls;
+	            $aUrls = [];
+	        // Falls die Assets einzeln geladen werden sollen, wird immer nur ddie erste Url übergeben.
+	        }else{
+	            $aQueryUrls = array_shift($aUrls);
+	        }        	
+	        /*
+	        // Falls Debug-Mode aktiviert ist, werden alle erzeugten Tags ausgegeben
+	        $aAcSettings = $this->objConfig->Application['asset_compressor'];
+	        if($aAcSettings['enable_debug_output']){
+	            Core_Debug::dump($aQueryUrls, 'Asset-Compressor|Verarbeitung der Urls:');
+	        }
+	        */
+	       
+			// Erstellt Url
+			$aQueryData = ['t' => $this->_sKey, 's' => $aQueryUrls];
+			$sCompressorUrl = $sControllerUrl.'?'.http_build_query($aQueryData);
+
+	        // Ergebnis wird zusammengefügt und zurückgegeben.
+	        $sResult .= $sCompressorUrl;
+        }
+
+        return $sResult;
+	}
+
 }

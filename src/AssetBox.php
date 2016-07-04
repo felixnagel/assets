@@ -12,9 +12,6 @@ class AssetBox extends Simple\BlackBox implements ITextAsset{
 	protected $_aAssets = [];
 	public function __construct($sAssetType, $sBasePath = '/'){
 		parent::__construct($sAssetType);
-		$this->set_base_path($sBasePath);
-	}
-	public function set_base_path($sBasePath){
 		$this->_sBasePath = Helper\Path::to_abs_path($sBasePath);
 	}
 	public function add_assets($aAssets){
@@ -96,5 +93,11 @@ class AssetBox extends Simple\BlackBox implements ITextAsset{
 			$this->fetch_assets();
 		}
 		return $this->_aAssets;
+	}
+	public function add_hierarchic_assets($aHierarchy){
+		$aHierarchicFiles = Helper\Path::collect_hierarchic_files(
+        	$aHierarchy, $this->_sBasePath
+        );
+       	$this->add_assets($aHierarchicFiles);
 	}
 }

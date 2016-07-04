@@ -1,75 +1,9 @@
 <?php
 
-namespace Core\Traits;
+namespace LuckyNail\Assets;
 
-use LuckyNail\Assets;
+trait ImplementationTrait{
 
-trait AssetCompressor{
-	protected function _ac__collect_asset_urls($sType, $sPublicPath, $aHierarchy = []){
-        $aJsHierarchicFiles = \LuckyNail\Helper\Path::collect_hierarchic_files(
-        	$aHierarchy, $sPublicPath
-        );
-		$oAssetBox = new Assets\AssetBox($sType, $sPublicPath);
-       	$oAssetBox->add_assets($aJsHierarchicFiles);
-		return $oAssetBox->get_asset_urls();
-	}
-
-	/**
-     * Erstellt link- oder script-Tags für den Asset-Compressor. Die somit erstellten Urls 
-     * leiten auf einen Controller, welcher die Assets komprimiert und ausgibt.
-     * 
-     * @param   string  $sType      	Art der Assets (js|css)
-     * @param   array   $aUrls      	Die Urls der gewünschten Assets
-     * @param   string	$sControllerUrl	Die Controller-Url 	
-     * @param   boolean $bMerge     	Flag, ob die Assets gemerged werden sollen
-     * @param   string  $sResult    	Die auszugebenden Tags (wird rekursiv zusammengefügt)
-     * @return  string              	Siehe $sResult
-     */
-	protected function _ac__create_tags(
-		$sType,
-		$aUrls,
-		$sControllerUrl = '',
-		$bMerge = true,
-		$sResult = ''
-	){
-		// Erstellt Tag-Prototypen für sprintf()
-        $aReplacementProtos = [
-            'js' => '<script src="%s" type="text/javascript"></script>'."\r\n",
-            'css' => '<link href="%s" type="text/css" rel="stylesheet" />'."\r\n",
-        ];
-
-        // Falls die Assets zusammengefügt werden sollen, werden als Urls-Parameter gleich alle
-        // Urls als Array gesetzt und der Url-Pool wird sofort geleert.
-        if($bMerge){
-            $aQueryUrls = $aUrls;
-            $aUrls = [];
-        // Falls die Assets einzeln geladen werden sollen, wird immer nur ddie erste Url übergeben.
-        }else{
-            $aQueryUrls = array_shift($aUrls);
-        }
-
-        /*
-        // Falls Debug-Mode aktiviert ist, werden alle erzeugten Tags ausgegeben
-        $aAcSettings = $this->objConfig->Application['asset_compressor'];
-        if($aAcSettings['enable_debug_output']){
-            Core_Debug::dump($aQueryUrls, 'Asset-Compressor|Verarbeitung der Urls:');
-        }
-        */
-       
-		// Erstellt Url
-		$aQueryData = ['t' => $sType, 's' => $aQueryUrls];
-		$sCompressorUrl = $sControllerUrl.'?'.http_build_query($aQueryData);
-
-        // Ergebnis wird zusammengefügt und zurückgegeben.
-        $sResultPart = sprintf($aReplacementProtos[$sType], $sCompressorUrl);
-        $sResult .= $sResultPart;
-
-        // Falls noch weitere Urls zu verarbeiten sind, führe Rekursion aus
-        if($aUrls){
-            return $this->_ac__create_tags($sType, $aUrls, $sControllerUrl, $bMerge, $sResult);
-        }
-        return $sResult;
-	}
 
 	protected function _ac__output(
 		$sType,
