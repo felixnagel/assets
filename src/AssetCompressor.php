@@ -88,7 +88,7 @@ class AssetCompressor extends AssetBox{
 			$sCompressorUrl = $sControllerUrl.'?'.http_build_query($aQueryData);
 
 	        // Ergebnis wird zusammengefügt und zurückgegeben.
-	        $sResult .= $sCompressorUrl;
+	        $sResult .= sprintf($aReplacementProtos[$this->_sKey], $sCompressorUrl);
         }
 
         return $sResult;

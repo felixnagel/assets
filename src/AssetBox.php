@@ -43,11 +43,11 @@ class AssetBox extends Simple\BlackBox implements ITextAsset{
 		return $sFullPath;
 	}
 	protected function _to_asset_url($sInput){
-		$sPathPart = Helper\Path::to_path_part($sInput);
-		if(strpos($sPathPart, $this->_sBasePath) === 0){
-			$sPathPart = str_replace($this->_sBasePath, '', $sPathPart);
+		$sAbsPath = Helper\Path::to_abs_path($sInput);
+		if($sAbsPath && strpos($sAbsPath, $this->_sBasePath) === 0){
+			$sInput = str_replace($this->_sBasePath, '', $sAbsPath);
 		}
-		return Helper\Path::to_url_part($sPathPart);
+		return Helper\Path::to_url_part($sInput);
 	}
 	protected function fetch_asset_urls(){
 		$this->_aAssetUrls = [];
