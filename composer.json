@@ -11,7 +11,6 @@
     ],
     "require": {
         "luckynail/helper": "*",
-        "luckynail/simple": "*",
         "luckynail/simple-cache": "*",
         "matthiasmullie/minify": "1.3.*"
     },

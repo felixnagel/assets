@@ -1,10 +1,7 @@
 <?php 
-
 namespace LuckyNail\Assets;
-use LuckyNail\Helper;
 use LuckyNail\SimpleCache;
 use MatthiasMullie\Minify;
-
 class AssetCompressor extends AssetBox{
 	protected $_oCompressor;
 	protected $_oCache;
@@ -75,6 +72,13 @@ class AssetCompressor extends AssetBox{
 	        }else{
 	            $aQueryUrls = array_shift($aUrls);
 	        }        	
+	        /*
+	        // Falls Debug-Mode aktiviert ist, werden alle erzeugten Tags ausgegeben
+	        $aAcSettings = $this->objConfig->Application['asset_compressor'];
+	        if($aAcSettings['enable_debug_output']){
+	            Core_Debug::dump($aQueryUrls, 'Asset-Compressor|Verarbeitung der Urls:');
+	        }
+	        */
 	       
 			// Erstellt Url
 			$aQueryData = ['t' => $this->_sKey, 's' => $aQueryUrls];

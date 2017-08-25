@@ -1,10 +1,6 @@
 <?php 
-
 namespace LuckyNail\Assets;
-
-use LuckyNail\Simple;
 use LuckyNail\Helper;
-
 class AssetBox extends Simple\BlackBox implements ITextAsset{
 	protected $_sBasePath = '';
 	protected $_aAssetUrls = [];
